@@ -1,13 +1,13 @@
 // ============================================================
 // KONFIGURASI UTAMA
 // ============================================================
+// PASTE URL DEPLOYMENT BARU ANDA DI SINI
 const ENDPOINT_URL = "https://script.google.com/macros/s/AKfycbzhnJI4xolJJi7x9cWHCqKZhIyrrqK7Uf64VvdNBVMwWFx-gmayna2rUAcsSKDpORAPqw/exec";
 
 // ============================================================
-// FUNGSI GLOBAL (Bisa dipanggil dari tombol HTML manapun)
+// FUNGSI GLOBAL
 // ============================================================
 
-// 1. Fungsi Logout
 function logout() {
     if(confirm("Yakin ingin keluar?")) {
         localStorage.clear();
@@ -15,198 +15,221 @@ function logout() {
     }
 }
 
-// 2. Fungsi Generate QR (Khusus Admin)
 function generateQR() {
     const inputSesi = document.getElementById("sessionName");
     const qrContainer = document.getElementById("qrcode");
     
-    if (!inputSesi || !qrContainer) return; // Cegah error jika elemen tidak ada
+    if (!inputSesi || !qrContainer) return;
 
     const text = inputSesi.value;
     if (text.trim() === "") {
         alert("Nama sesi tidak boleh kosong!");
         return;
     }
-
-    // Bersihkan QR lama
     qrContainer.innerHTML = "";
-    
-    // Buat QR Baru
-    new QRCode(qrContainer, {
-        text: text,
-        width: 150,
-        height: 150
-    });
+    new QRCode(qrContainer, { text: text, width: 150, height: 150 });
 }
 
 // ============================================================
-// LOGIKA SAAT HALAMAN DIMUAT (DOMContentLoaded)
+// LOGIKA SAAT HALAMAN DIMUAT
 // ============================================================
 document.addEventListener("DOMContentLoaded", function() {
     
     const path = window.location.pathname;
 
-    // --- CEK SESI LOGIN (Proteksi Halaman) ---
+    // --- CEK SESI LOGIN ---
     if (path.includes("admin.html") || path.includes("atlet.html")) {
         const role = localStorage.getItem("user_role");
         if (!role) {
             alert("Anda harus login dulu!");
             window.location.href = "login.html";
-            return; // Stop eksekusi script di bawahnya
+            return;
         }
     }
 
     // ==========================================
-    // 1. HALAMAN LOGIN (login.html)
+    // 1. HALAMAN LOGIN
     // ==========================================
     const loginForm = document.getElementById("loginForm");
     if (loginForm) {
         loginForm.addEventListener("submit", function(e) {
             e.preventDefault();
-            
             const btn = document.querySelector(".btn");
             const originalText = btn.innerText;
-            btn.innerText = "Memproses...";
-            btn.disabled = true;
-
-            const user = document.getElementById("username").value;
-            const pass = document.getElementById("password").value;
+            btn.innerText = "Memproses..."; btn.disabled = true;
 
             fetch(ENDPOINT_URL, {
                 method: "POST",
-                body: JSON.stringify({ action: "login", username: user, password: pass })
+                body: JSON.stringify({ 
+                    action: "login", 
+                    username: document.getElementById("username").value, 
+                    password: document.getElementById("password").value 
+                })
             })
-            .then(response => response.json())
+            .then(res => res.json())
             .then(data => {
                 if (data.status === "sukses") {
                     localStorage.setItem("user_nama", data.nama);
                     localStorage.setItem("user_role", data.role);
                     alert("Selamat datang, " + data.nama);
-                    
                     if (data.role === "admin") window.location.href = "admin.html";
                     else window.location.href = "atlet.html";
                 } else {
-                    alert("Username atau Password salah!");
-                    btn.innerText = originalText;
-                    btn.disabled = false;
+                    alert("Username/Password salah!");
+                    btn.innerText = originalText; btn.disabled = false;
                 }
             })
-            .catch(err => {
-                console.error(err);
-                alert("Gagal koneksi server.");
-                btn.innerText = originalText;
-                btn.disabled = false;
-            });
+            .catch(err => { alert("Error Server"); btn.innerText = originalText; btn.disabled = false; });
         });
     }
 
     // ==========================================
-    // 2. HALAMAN PENDAFTARAN (daftar_atlet.html)
+    // 2. HALAMAN PENDAFTARAN
     // ==========================================
     const daftarForm = document.getElementById("daftarForm");
     if (daftarForm) {
         daftarForm.addEventListener("submit", function(e){
             e.preventDefault();
-            
             const btn = document.querySelector("button[type=submit]");
-            const originalText = btn.innerText;
-            btn.innerText = "Mendaftarkan...";
-            btn.disabled = true;
-
-            const data = {
-                action: "daftar",
-                nama: document.getElementById("regNama").value,
-                cabor: document.getElementById("regCabor").value,
-                username: document.getElementById("regUser").value,
-                password: document.getElementById("regPass").value
-            };
+            btn.innerText = "Mendaftarkan..."; btn.disabled = true;
 
             fetch(ENDPOINT_URL, {
                 method: "POST",
-                body: JSON.stringify(data)
+                body: JSON.stringify({
+                    action: "daftar",
+                    nama: document.getElementById("regNama").value,
+                    cabor: document.getElementById("regCabor").value,
+                    username: document.getElementById("regUser").value,
+                    password: document.getElementById("regPass").value
+                })
             })
             .then(res => res.json())
             .then(d => {
                 if(d.status === "sukses") {
-                    alert("Pendaftaran Berhasil! Silakan Login.");
+                    alert("Berhasil! Silakan Login.");
                     window.location.href = "login.html";
                 } else {
                     alert("Gagal: " + d.pesan);
-                    btn.innerText = originalText;
-                    btn.disabled = false;
+                    btn.innerText = "DAFTAR"; btn.disabled = false;
                 }
-            })
-            .catch(err => {
-                alert("Terjadi kesalahan sistem.");
-                btn.innerText = originalText;
-                btn.disabled = false;
             });
         });
     }
 
     // ==========================================
-    // 3. HALAMAN ADMIN (admin.html)
+    // 3. HALAMAN ADMIN (LENGKAP)
     // ==========================================
     if (path.includes("admin.html")) {
-        // Tampilkan Nama
         const adminName = localStorage.getItem("user_nama");
         if (adminName) document.getElementById("adminNameDisplay").innerText = "Halo, " + adminName;
 
-        // Set Default Input QR
+        // A. Set Default Tanggal
         const today = new Date();
-        const dateStr = today.getDate() + "/" + (today.getMonth()+1) + "/" + today.getFullYear();
-        const sessionInput = document.getElementById("sessionName");
-        if(sessionInput) sessionInput.value = "Latihan " + dateStr;
+        const dateStr = today.toISOString().split('T')[0]; // Format YYYY-MM-DD untuk input date
+        const prettyDate = today.getDate() + "/" + (today.getMonth()+1) + "/" + today.getFullYear();
+        
+        const sessInput = document.getElementById("sessionName");
+        if(sessInput) sessInput.value = "Latihan " + prettyDate;
+        
+        const dateInput = document.getElementById("inputTanggal");
+        if(dateInput) dateInput.value = dateStr;
 
-        // Setup Grafik
+        document.getElementById("todayDisplay").innerText = prettyDate;
+
+        // B. Load Dropdown Nama Atlet
+        const selectAtlet = document.getElementById("inputNamaAtlet");
+        if(selectAtlet) {
+            fetch(ENDPOINT_URL, {
+                method: "POST",
+                body: JSON.stringify({ action: "getDaftarAtlet" })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.status === "sukses") {
+                    selectAtlet.innerHTML = ""; // Hapus loading
+                    document.getElementById("totalUserDisplay").innerText = data.data.length + " Atlet";
+                    data.data.forEach(nama => {
+                        let option = document.createElement("option");
+                        option.text = nama;
+                        option.value = nama;
+                        selectAtlet.add(option);
+                    });
+                }
+            });
+        }
+
+        // C. Setup Grafik
         const ctx = document.getElementById('performanceChart');
-        if (ctx) {
-            const chartContext = ctx.getContext('2d');
-            let myChart;
+        let myChart;
 
-            function initChart(labels, dataValues) {
-                if (myChart) myChart.destroy();
-                myChart = new Chart(chartContext, {
-                    type: 'line',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: 'Rata-rata Performa Tim',
-                            data: dataValues,
-                            borderColor: '#0056b3',
-                            backgroundColor: 'rgba(0, 86, 179, 0.1)',
-                            tension: 0.3,
-                            fill: true
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: { y: { beginAtZero: true, max: 100 } }
-                    }
-                });
-            }
-
+        function loadGrafik() {
             fetch(ENDPOINT_URL, {
                 method: "POST",
                 body: JSON.stringify({ action: "getGrafik" })
             })
             .then(res => res.json())
             .then(response => {
-                if (response.status === "sukses") initChart(response.labels, response.values);
-                else initChart(["No Data"], [0]);
+                if (response.status === "sukses") {
+                    if (myChart) myChart.destroy();
+                    myChart = new Chart(ctx.getContext('2d'), {
+                        type: 'line',
+                        data: {
+                            labels: response.labels,
+                            datasets: [{
+                                label: 'Rata-rata Tim',
+                                data: response.values,
+                                borderColor: '#0056b3',
+                                backgroundColor: 'rgba(0, 86, 179, 0.1)',
+                                tension: 0.3, fill: true
+                            }]
+                        },
+                        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 100 } } }
+                    });
+                }
+            });
+        }
+        if(ctx) loadGrafik(); // Load pertama kali
+
+        // D. Handle Input Nilai (Form Submit)
+        const formNilai = document.getElementById("formNilai");
+        if(formNilai) {
+            formNilai.addEventListener("submit", function(e){
+                e.preventDefault();
+                const btnSimpan = formNilai.querySelector("button");
+                const txtAsli = btnSimpan.innerText;
+                btnSimpan.innerText = "Menyimpan..."; btnSimpan.disabled = true;
+
+                fetch(ENDPOINT_URL, {
+                    method: "POST",
+                    body: JSON.stringify({
+                        action: "inputNilai",
+                        nama: document.getElementById("inputNamaAtlet").value,
+                        tanggal: document.getElementById("inputTanggal").value,
+                        nilai: document.getElementById("inputSkor").value
+                    })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if(data.status === "sukses") {
+                        alert("Data Berhasil Disimpan!");
+                        loadGrafik(); // Refresh grafik otomatis
+                        document.getElementById("inputSkor").value = ""; // Reset input skor
+                    } else {
+                        alert("Gagal menyimpan.");
+                    }
+                    btnSimpan.innerText = txtAsli; btnSimpan.disabled = false;
+                });
             });
         }
     }
 
     // ==========================================
-    // 4. HALAMAN ATLET (atlet.html)
+    // 4. HALAMAN ATLET
     // ==========================================
     if (path.includes("atlet.html")) {
         const atletName = localStorage.getItem("user_nama");
         if (atletName) document.getElementById("atletNameDisplay").innerText = "Halo, " + atletName;
 
-        // Ambil Statistik
         fetch(ENDPOINT_URL, {
             method: "POST",
             body: JSON.stringify({ action: "getStatistikAtlet", nama: atletName })
@@ -215,53 +238,36 @@ document.addEventListener("DOMContentLoaded", function() {
         .then(data => {
             if (data.status === "sukses") {
                 const statBox = document.querySelector(".card h1"); 
-                const statLabel = document.querySelector(".card h1 + p");
-                if(statBox) {
-                    statBox.innerText = data.hadir + " Kali";
-                    statBox.style.color = "#28a745";
-                    statLabel.innerText = "Total Kehadiran Latihan";
-                }
+                if(statBox) statBox.innerText = data.hadir + " Kali";
             }
         });
 
-        // Setup Scanner
         if(document.getElementById("reader")) {
-            function onScanSuccess(decodedText, decodedResult) {
-                html5QrcodeScanner.clear(); // Stop scan agar tidak double
-                
-                const resultDiv = document.getElementById("scanResult");
-                const statusText = document.getElementById("scanStatus");
-                
-                statusText.innerText = "Memproses data...";
+            function onScanSuccess(decodedText) {
+                html5QrcodeScanner.clear();
+                document.getElementById("scanStatus").innerText = "Memproses...";
                 
                 fetch(ENDPOINT_URL, {
                     method: "POST",
                     body: JSON.stringify({ action: "absen", nama: atletName, sesi: decodedText })
                 })
-                .then(response => response.json())
+                .then(res => res.json())
                 .then(data => {
                     if(data.status === "sukses") {
-                        resultDiv.innerHTML = `✅ <strong>Berhasil!</strong><br>Absensi sesi: "${decodedText}" tercatat.`;
+                        const resultDiv = document.getElementById("scanResult");
+                        resultDiv.innerHTML = `✅ <strong>Berhasil!</strong><br>Sesi: "${decodedText}"`;
                         resultDiv.className = "success-anim";
-                        statusText.innerText = "Selesai.";
                         setTimeout(() => window.location.reload(), 3000);
                     }
-                })
-                .catch(err => {
-                    alert("Gagal koneksi.");
-                    window.location.reload();
                 });
             }
-    
-            let html5QrcodeScanner = new Html5QrcodeScanner(
-                "reader", { fps: 10, qrbox: {width: 250, height: 250} }, false
-            );
+            let html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: {width: 250, height: 250} }, false);
             html5QrcodeScanner.render(onScanSuccess, (err) => {});
         }
     }
 
     // ==========================================
-    // 5. HALAMAN HOME (index.html)
+    // 5. HALAMAN HOME (PENGUMUMAN)
     // ==========================================
     const listDiv = document.getElementById("pengumuman-list");
     if(listDiv) {
@@ -288,5 +294,4 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         });
     }
-
 });
