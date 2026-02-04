@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pendaftaran Atlet</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        
+        :root {
+            --primary-green: #2d5a27; /* Hijau sesuai logo */
+            --accent-red: #d32f2f;    /* Merah sesuai aksen logo */
+            --soft-bg: #f8fafc;
+        }
+
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--soft-bg);
+            background-image: radial-gradient(circle at 0% 0%, #e8f5e9 0%, transparent 25%),
+                              radial-gradient(circle at 100% 100%, #ffebee 0%, transparent 25%);
+            min-height: 100vh;
+            color: #334155;
+        }
+
+        .glass-card { 
+            background: rgba(255, 255, 255, 0.9); 
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05);
+        }
+
+        .input-group {
+            background: #ffffff;
+            border: 1.5px solid #e2e8f0;
+            transition: all 0.2s ease;
+        }
+
+        .input-group:focus {
+            border-color: var(--primary-green);
+            box-shadow: 0 0 0 4px rgba(45, 90, 39, 0.1);
+            outline: none;
+        }
+
+        .btn-modern {
+            background: var(--primary-green);
+            transition: all 0.3s ease;
+        }
+
+        .btn-modern:hover {
+            background: #1e3d1a;
+            transform: translateY(-1px);
+        }
+
+        .section-title {
+            position: relative;
+            padding-bottom: 8px;
+            color: var(--primary-green);
+            font-weight: 700;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 30px;
+            height: 3px;
+            background: var(--accent-red);
+            border-radius: 2px;
+        }
+
+        /* Custom Radio Style */
+        .radio-custom:checked + span {
+            background-color: var(--primary-green);
+            color: white;
+            border-color: var(--primary-green);
+        }
+    </style>
+</head>
+<body class="p-4 md:py-16 flex items-center justify-center">
+
+    <div class="max-w-2xl w-full mx-auto glass-card p-6 md:p-12 rounded-3xl">
+        <div class="text-center mb-10">
+            <img src="logoukm.png" alt="Logo PSUNUSIA" class="h-24 w-24 mx-auto mb-4 object-contain">
+            <h2 class="text-2xl md:text-3xl font-bold text-slate-800 tracking-tight">Pendaftaran Atlet</h2>
+            <p class="text-slate-500 mt-1 text-sm">Unit Kegiatan Mahasiswa Pencak Silat UNUSIA</p>
+        </div>
+        
+        <form id="registrationForm" class="space-y-10">
+            <div class="space-y-6">
+                <h3 class="text-base section-title">Data Identitas</h3>
+                
+                <div class="grid grid-cols-1 gap-5">
+                    <div>
+                        <label class="block mb-1.5 text-sm font-semibold text-slate-700">Email Aktif</label>
+                        <input type="email" name="email" required class="w-full input-group p-3.5 rounded-xl text-slate-700" placeholder="contoh@gmail.com">
+                    </div>
+
+                    <div>
+                        <label class="block mb-1.5 text-sm font-semibold text-slate-700">Nama Lengkap</label>
+                        <input type="text" name="nama" required class="w-full input-group p-3.5 rounded-xl text-slate-700" placeholder="Nama lengkap sesuai KTP/KTM">
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div>
+                            <label class="block mb-1.5 text-sm font-semibold text-slate-700">NIM</label>
+                            <input type="text" name="nim" pattern="\d{8,}" title="Minimal 8 digit angka" required class="w-full input-group p-3.5 rounded-xl text-slate-700" placeholder="12345678">
+                        </div>
+                        <div>
+                            <label class="block mb-1.5 text-sm font-semibold text-slate-700">Program Studi</label>
+                            <select name="prodi" required class="w-full input-group p-3.5 rounded-xl bg-white text-slate-700">
+                                <option value="">Pilih Program Studi</option>
+                                <option>Teknik Informatika</option>
+                                <option>Pendidikan Agama Islam</option>
+                                <option>Pendidikan Guru Madrasah Ibtidaiyah</option>
+                                <option>Teknologi Agroindustri</option>
+                                <option>Ilmu Hukum</option>
+                                <option>Hukum Keluarga</option>
+                                <option>Sejarah Peradaban Islam</option>
+                                <option>Ekonomi Syariah</option>
+                                <option>Tadris Bahasa Inggris</option>
+                                <option>Pendidikan Anak Usia Dini</option>
+                                <option>Psikologi</option>
+                                <option>Sistem Informasi</option>
+                                <option>Sosiologi</option>
+                                <option>Akuntansi</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block mb-3 text-sm font-semibold text-slate-700">Jenis Kelamin</label>
+                        <div class="flex gap-4">
+                            <label class="flex-1 relative cursor-pointer">
+                                <input type="radio" name="jk" value="Laki-laki" required class="sr-only radio-custom">
+                                <span class="block text-center p-3 border-2 border-slate-200 rounded-xl font-medium transition-all">Laki-laki</span>
+                            </label>
+                            <label class="flex-1 relative cursor-pointer">
+                                <input type="radio" name="jk" value="Perempuan" class="sr-only radio-custom">
+                                <span class="block text-center p-3 border-2 border-slate-200 rounded-xl font-medium transition-all">Perempuan</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-6">
+                <h3 class="text-base section-title">Data Fisik & Kelahiran</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                        <label class="block mb-1.5 text-sm font-semibold text-slate-700">Tempat Lahir</label>
+                        <input type="text" name="tempat_lahir" required class="w-full input-group p-3.5 rounded-xl" placeholder="Kota/Kabupaten">
+                    </div>
+                    <div>
+                        <label class="block mb-1.5 text-sm font-semibold text-slate-700">Tanggal Lahir</label>
+                        <input type="date" name="tgl_lahir" required class="w-full input-group p-3.5 rounded-xl">
+                    </div>
+                    <div>
+                        <label class="block mb-1.5 text-sm font-semibold text-slate-700">Berat Badan (kg)</label>
+                        <input type="number" name="bb" step="0.1" required class="w-full input-group p-3.5 rounded-xl" placeholder="45.5">
+                    </div>
+                    <div>
+                        <label class="block mb-1.5 text-sm font-semibold text-slate-700">Tinggi Badan (cm)</label>
+                        <input type="number" name="tb" required class="w-full input-group p-3.5 rounded-xl" placeholder="165">
+                    </div>
+                </div>
+                <div>
+                    <label class="block mb-1.5 text-sm font-semibold text-slate-700">NIK (Sesuai KTP/KK)</label>
+                    <input type="text" name="nik" required class="w-full input-group p-3.5 rounded-xl" placeholder="16 digit angka">
+                </div>
+            </div>
+
+            <div class="space-y-6">
+                <h3 class="text-base section-title">Unggah Berkas (HD)</h3>
+                
+                <div class="space-y-4">
+                    <div class="p-4 border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50/50">
+                        <label class="block mb-2 text-xs font-bold text-slate-500">Foto Diri (Formal)</label>
+                        <input type="file" name="foto_silat" accept=".png, .jpg, .jpeg" required class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300">
+                    <p class="mt-2 text-[10px] text-slate-400 leading-relaxed">
+                        Gunakan foto resmi memakai seragam silat lengkap.<br>latar belakang biru.<br>ukuran foto 3x4.<br>Pastikan wajah terlihat jelas dan kualitas foto tidak pecah.
+                    </p>
+                    </div>
+
+                    <div class="p-4 border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50/50">
+                        <label class="block mb-2 text-xs font-bold text-slate-500">Upload Kartu Keluarga</label>
+                        <input type="file" name="foto_kk" accept=".png, .jpg, .jpeg" required class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300">
+                    </div>
+
+                    <div class="p-4 border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50/50">
+                        <label class="block mb-2 text-xs font-bold text-slate-500">Upload Akte Kelahiran</label>
+                        <input type="file" name="foto_akte" accept=".png, .jpg, .jpeg" required class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300">
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <label class="block mb-2 text-sm font-semibold text-slate-700">Kategori Tanding</label>
+                <select name="kategori" required class="w-full input-group p-3.5 rounded-xl bg-white text-slate-700">
+                    <option value="">Pilih Kategori</option>
+                    <option>Tanding</option>
+                    <option>Seni Tunggal</option>
+                    <option>Seni Ganda</option>
+                    <option>Seni Regu</option>
+                    <option>Seni Solo Kreatif</option>
+                </select>
+            </div>
+
+            <button type="submit" id="submitBtn" class="w-full btn-modern text-white py-4 px-6 rounded-2xl font-bold text-lg shadow-lg shadow-green-900/20">
+                Kirim Pendaftaran
+            </button>
+        </form>
+    </div>
+
+    <script>
+        const form = document.getElementById('registrationForm');
+        const btn = document.getElementById('submitBtn');
+
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwlYUfuVwS8aErgOPxImVLs6BfKUV396SzkotYJr8Kw0UiIAJf74uRsfIpKCO-GVudx/exec';
+
+        form.addEventListener('submit', e => {
+            e.preventDefault();
+            btn.disabled = true;
+            btn.innerHTML = `<span class="inline-block animate-pulse">Mengirim data...</span>`;
+
+            const formData = new FormData(form);
+            const files = ['foto_silat', 'foto_kk', 'foto_akte'];
+            
+            const promises = files.map(fieldName => {
+                const file = form[fieldName].files[0];
+                return new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => resolve({ name: fieldName, data: e.target.result.split(',')[1], fileName: file.name });
+                    reader.readAsDataURL(file);
+                });
+            });
+
+            Promise.all(promises).then(fileResults => {
+                const payload = {};
+                formData.forEach((value, key) => { 
+                    if(!files.includes(key)) payload[key] = value; 
+                });
+                
+                fileResults.forEach(f => {
+                    payload[f.name] = f.data;
+                    payload[f.name + '_name'] = f.fileName;
+                });
+
+                fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                })
+                .then(res => res.json())
+                .then(response => {
+                    alert("Berhasil! Data pendaftaran Anda telah tersimpan.");
+                    const confirmWA = confirm("Klik OK untuk bergabung ke grup WhatsApp atlet.");
+                    if(confirmWA) {
+                        window.location.href = "https://chat.whatsapp.com/LINK_GROUP_ANDA";
+                    }
+                    form.reset();
+                })
+                .catch(error => {
+                    console.error('Error!', error.message);
+                    alert("Gagal mengirim. Periksa koneksi internet Anda.");
+                })
+                .finally(() => {
+                    btn.disabled = false;
+                    btn.innerText = "Kirim Pendaftaran";
+                });
+            });
+        });
+    </script>
+</body>
+</html>

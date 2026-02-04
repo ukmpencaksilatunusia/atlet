@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Atlet - PSUNUSIA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; }
+        .glass-effect { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-6 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]">
+
+    <div class="w-full max-w-md glass-effect p-8 rounded-[2.5rem] shadow-2xl border border-white">
+        <div class="text-center mb-8">
+            <div class="bg-[#1e3d1a] inline-block p-4 rounded-3xl shadow-lg mb-4">
+                <img src="logoukm.jpg" alt="Logo PSUNUSIA" class="h-16 w-16 object-contain">
+            </div>
+            <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">Portal Atlet</h1>
+            <p class="text-slate-500 text-sm mt-1 font-medium">UKM Pencak Silat UNUSIA Jakarta</p>
+        </div>
+
+        <div class="space-y-5">
+            <div>
+                <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Alamat Email</label>
+                <input type="email" id="emailInput" placeholder="nama@unusia.ac.id" 
+                    class="w-full px-5 py-4 rounded-2xl border border-slate-200 focus:border-[#2d5a27] focus:ring-4 focus:ring-[#2d5a27]/10 outline-none transition-all text-sm font-medium">
+            </div>
+            
+            <div>
+                <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Kata Sandi</label>
+                <input type="password" id="passInput" placeholder="••••••••" 
+                    class="w-full px-5 py-4 rounded-2xl border border-slate-200 focus:border-[#2d5a27] focus:ring-4 focus:ring-[#2d5a27]/10 outline-none transition-all text-sm font-medium">
+            </div>
+
+            <div id="errorMessage" class="hidden p-3 rounded-xl bg-red-50 text-red-600 text-xs font-bold text-center border border-red-100 italic">
+                Email tidak ditemukan atau sandi salah!
+            </div>
+
+            <button onclick="prosesLogin()" id="loginBtn" 
+                class="w-full bg-[#2d5a27] hover:bg-[#1e3d1a] text-white py-4 rounded-2xl font-bold shadow-lg shadow-green-900/20 transition-all transform active:scale-[0.98] flex justify-center items-center gap-2">
+                <span>Masuk ke Dashboard</span>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path></svg>
+            </button>
+        </div>
+
+        <div class="mt-8 pt-6 border-t border-slate-100 text-center">
+            <p class="text-slate-400 text-xs">Belum terdaftar sebagai atlet? <br>
+                <a href="daftar_atlet.html" class="text-[#d32f2f] font-bold hover:underline">Silakan mendaftar disini</a>
+            </p>
+        </div>
+    </div>
+
+    <div id="loader" class="hidden fixed inset-0 bg-white/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center">
+        <div class="animate-spin rounded-full h-12 w-12 border-4 border-[#2d5a27] border-t-transparent mb-4"></div>
+        <p class="text-[#2d5a27] font-bold text-sm animate-pulse tracking-widest">MEMVERIFIKASI DATA...</p>
+    </div>
+
+    <script>
+        // Gunakan URL Web App Google Apps Script Anda
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwlYUfuVwS8aErgOPxImVLs6BfKUV396SzkotYJr8Kw0UiIAJf74uRsfIpKCO-GVudx/exec';
+
+        async function prosesLogin() {
+            const email = document.getElementById('emailInput').value.trim();
+            const pass = document.getElementById('passInput').value;
+            const errorDiv = document.getElementById('errorMessage');
+            const loader = document.getElementById('loader');
+
+            if (!email || !pass) {
+                alert("Harap isi email dan kata sandi!");
+                return;
+            }
+
+            // Reset error
+            errorDiv.classList.add('hidden');
+            loader.classList.remove('hidden');
+
+            try {
+                // Mengambil data atlet melalui fungsi doGet pada Apps Script
+                const response = await fetch(SCRIPT_URL);
+                const data = await response.json();
+
+                // Validasi: Cek email di database dan pastikan password adalah "atlet"
+                const atletFound = data.find(atlet => atlet.email.toLowerCase() === email.toLowerCase());
+
+                if (atletFound && pass === "atlet") {
+                    // Simpan data atlet ke Session Storage agar bisa dibaca atlet.html
+                    sessionStorage.setItem('loggedInAtlet', JSON.stringify(atletFound));
+                    
+                    // Alihkan ke halaman atlet.html
+                    window.location.href = 'atlet.html';
+                } else {
+                    errorDiv.classList.remove('hidden');
+                    loader.classList.add('hidden');
+                }
+
+            } catch (error) {
+                console.error("Login Error:", error);
+                alert("Gagal terhubung ke server. Pastikan Deploy Apps Script Anda benar.");
+                loader.classList.add('hidden');
+            }
+        }
+    </script>
+</body>
+</html>

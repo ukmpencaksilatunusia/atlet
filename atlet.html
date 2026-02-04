@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Atlet - PSUNUSIA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; color: #1e293b; }
+        .glass-card { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .nav-item.active { color: #2d5a27; border-bottom: 2px solid #2d5a27; }
+        
+        /* Animasi Sukses Scan */
+        .scan-success-anim { animation: success-pulse 0.5s ease-out; }
+        @keyframes success-pulse {
+            0% { transform: scale(0.9); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        #reader video { border-radius: 1.5rem; object-fit: cover; }
+    </style>
+</head>
+<body class="pb-24">
+
+    <div id="atletLoader" class="fixed inset-0 z-[150] bg-white flex items-center justify-center">
+        <div class="flex flex-col items-center">
+            <div class="animate-spin rounded-full h-12 w-12 border-4 border-[#2d5a27] border-t-transparent mb-3"></div>
+            <p class="text-xs font-bold text-slate-400 tracking-widest uppercase">Sinkronisasi Data...</p>
+        </div>
+    </div>
+
+    <div id="mainPortal" class="hidden">
+        <div class="bg-[#1e3d1a] pt-10 pb-20 px-6 text-white text-center relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16"></div>
+            <div class="absolute bottom-0 left-0 w-20 h-20 bg-white/5 rounded-full -ml-10 -mb-10"></div>
+            
+            <div class="relative inline-block">
+                <img id="profileImg" src="" class="w-24 h-24 rounded-full border-4 border-white shadow-2xl object-cover mx-auto bg-white">
+                <div class="absolute bottom-1 right-1 bg-green-500 w-5 h-5 rounded-full border-2 border-white"></div>
+            </div>
+            <h1 id="atletNama" class="text-xl font-extrabold mt-3 tracking-tight italic uppercase"></h1>
+            <p id="atletNim" class="text-green-200 text-xs font-mono opacity-80 tracking-widest"></p>
+            
+            <button onclick="logout()" class="absolute top-6 right-6 p-2 bg-white/10 rounded-xl hover:bg-white/20 transition-all">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+            </button>
+        </div>
+
+        <div class="px-5 -mt-12">
+            
+            <div id="performaTab" class="tab-content active space-y-5">
+                
+                <div class="glass-card p-5 rounded-[2rem] shadow-sm border-l-4 border-l-[#2d5a27]">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-bold text-slate-800 flex items-center gap-2 text-xs uppercase tracking-wider">
+                            <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                            Ringkasan Latihan
+                        </h3>
+                        <span class="text-[9px] font-bold bg-green-100 text-green-700 px-2 py-0.5 rounded uppercase">Bulan Ini</span>
+                    </div>
+                    
+                    <div class="relative h-[150px] w-full"> 
+                        <canvas id="performanceChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="glass-card p-6 rounded-[2rem] shadow-sm border border-slate-100">
+                    <h3 class="font-bold text-slate-700 mb-5 italic border-b border-slate-50 pb-2 flex items-center gap-2 text-sm uppercase tracking-wide">
+                        Informasi Atlet
+                    </h3>
+                    <div class="grid grid-cols-2 gap-y-5 gap-x-3 text-[13px]">
+                        <div class="col-span-2">
+                            <p class="text-slate-400 text-[10px] uppercase font-bold tracking-widest mb-0.5">Nama Lengkap</p>
+                            <p id="det-nama" class="text-slate-800 font-bold text-base"></p>
+                        </div>
+                        <div>
+                            <p class="text-slate-400 text-[10px] uppercase font-bold tracking-widest mb-0.5">Program Studi</p>
+                            <p id="det-prodi" class="text-slate-700 font-semibold"></p>
+                        </div>
+                        <div>
+                            <p class="text-slate-400 text-[10px] uppercase font-bold tracking-widest mb-0.5">Gender</p>
+                            <p id="det-jk" class="text-slate-700 font-semibold"></p>
+                        </div>
+                        <div>
+                            <p class="text-slate-400 text-[10px] uppercase font-bold tracking-widest mb-0.5">Fisik (BB/TB)</p>
+                            <p id="det-fisik" class="text-slate-700 font-semibold"></p>
+                        </div>
+                        <div>
+                            <p class="text-slate-400 text-[10px] uppercase font-bold tracking-widest mb-0.5">TTL</p>
+                            <p id="det-ttl" class="text-slate-700 font-semibold"></p>
+                        </div>
+                        <div class="col-span-2 bg-slate-50 p-4 rounded-2xl border border-slate-100 mt-2">
+                            <p class="text-slate-400 text-[10px] uppercase font-bold tracking-widest mb-1">Nomor Induk Kependudukan (NIK)</p>
+                            <p id="det-nik" class="text-slate-700 font-bold font-mono tracking-tighter text-sm"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="absensiTab" class="tab-content space-y-6">
+                <div class="glass-card p-6 rounded-[2.5rem] shadow-sm text-center">
+                    <div class="mb-6">
+                        <div class="bg-red-50 w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                            <svg class="w-7 h-7 text-[#d32f2f]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path></svg>
+                        </div>
+                        <h3 class="font-extrabold text-slate-800 text-sm uppercase tracking-wider">Presensi Latihan</h3>
+                        <p class="text-slate-500 text-[11px] mt-1 px-4 leading-relaxed">Arahkan kamera ke QR Code yang ada di meja pengurus UKM.</p>
+                    </div>
+                    
+                    <div id="reader-wrapper" class="relative overflow-hidden rounded-[2rem] border-4 border-white shadow-2xl bg-black aspect-square max-w-[280px] mx-auto">
+                        <div id="reader" style="width: 100%"></div>
+                        <div id="scanSuccessOverlay" class="hidden absolute inset-0 bg-[#2d5a27]/95 flex flex-col items-center justify-center text-white z-10 scan-success-anim">
+                            <div class="bg-white/20 p-4 rounded-full mb-3">
+                                <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                            </div>
+                            <span class="font-bold uppercase tracking-widest text-sm">Absensi Berhasil!</span>
+                            <p class="text-[10px] opacity-80 mt-1" id="statusMsg">Data Anda telah tercatat.</p>
+                        </div>
+                    </div>
+                    
+                    <div id="result" class="mt-4 text-xs font-bold text-slate-400">SIAP PINDAI</div>
+                </div>
+            </div>
+
+        </div>
+
+        <nav class="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-md border-t border-slate-100 px-10 py-4 flex justify-around items-center shadow-[0_-10px_40px_rgba(0,0,0,0.05)] z-50">
+            <button onclick="showTab('performa')" id="nav-performa" class="nav-item active flex flex-col items-center gap-1 transition-all">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                <span class="text-[9px] font-bold uppercase tracking-widest">Dashboard</span>
+            </button>
+            <button onclick="showTab('absensi')" id="nav-absensi" class="nav-item flex flex-col items-center gap-1 transition-all text-slate-300">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path></svg>
+                <span class="text-[9px] font-bold uppercase tracking-widest">Absensi</span>
+            </button>
+        </nav>
+    </div>
+
+    <script>
+        // GANTI INI DENGAN URL WEB APP ANDA
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwlYUfuVwS8aErgOPxImVLs6BfKUV396SzkotYJr8Kw0UiIAJf74uRsfIpKCO-GVudx/exec"; 
+        
+        let currentAtlet = null;
+        let html5QrCode = null;
+
+        window.onload = function() {
+            const savedData = sessionStorage.getItem('loggedInAtlet');
+            if (!savedData) {
+                window.location.href = 'login.html';
+            } else {
+                currentAtlet = JSON.parse(savedData);
+                renderProfile();
+                setTimeout(() => {
+                    document.getElementById('atletLoader').classList.add('hidden');
+                    document.getElementById('mainPortal').classList.remove('hidden');
+                    initChart();
+                }, 1000);
+            }
+        };
+
+        function renderProfile() {
+            document.getElementById('profileImg').src = currentAtlet.foto || 'https://via.placeholder.com/150';
+            document.getElementById('atletNama').innerText = currentAtlet.nama;
+            document.getElementById('atletNim').innerText = `ID. ${currentAtlet.nim}`;
+            document.getElementById('det-nama').innerText = currentAtlet.nama;
+            document.getElementById('det-prodi').innerText = currentAtlet.prodi;
+            document.getElementById('det-jk').innerText = currentAtlet.jk;
+            document.getElementById('det-ttl').innerText = `${currentAtlet.tempat_lahir}, ${currentAtlet.tgl_lahir}`;
+            document.getElementById('det-fisik').innerText = `${currentAtlet.bb} KG / ${currentAtlet.tb} CM`;
+            document.getElementById('det-nik').innerText = currentAtlet.nik;
+        }
+
+        async function showTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => {
+                n.classList.add('text-slate-300');
+                n.classList.remove('active');
+            });
+            
+            document.getElementById(`${tabName}Tab`).classList.add('active');
+            const activeNav = document.getElementById(`nav-${tabName}`);
+            activeNav.classList.add('active');
+            activeNav.classList.remove('text-slate-300');
+
+            if (tabName === 'absensi') {
+                startScanner();
+            } else {
+                stopScanner();
+            }
+        }
+
+        function initChart() {
+            const ctx = document.getElementById('performanceChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['S1', 'S2', 'S3', 'S4', 'S5'],
+                    datasets: [{
+                        data: [100, 90, 100, 85, 100],
+                        borderColor: '#2d5a27',
+                        borderWidth: 3,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#fff',
+                        tension: 0.4,
+                        fill: true,
+                        backgroundColor: 'rgba(45, 90, 39, 0.05)'
+                    }]
+                },
+                options: { 
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { display: false, beginAtZero: true, max: 110 },
+                        x: { grid: { display: false }, ticks: { font: { size: 10, weight: 'bold' }, color: '#94a3b8' } }
+                    }
+                }
+            });
+        }
+
+        function startScanner() {
+            html5QrCode = new Html5Qrcode("reader");
+            const config = { fps: 20, qrbox: { width: 220, height: 220 } };
+            html5QrCode.start({ facingMode: "environment" }, config, (decodedText) => {
+                processAttendance(decodedText);
+            }).catch(err => {
+                document.getElementById('result').innerText = "KAMERA TIDAK AKTIF";
+            });
+        }
+
+        function stopScanner() {
+            if (html5QrCode && html5QrCode.isScanning) {
+                html5QrCode.stop().catch(() => {});
+            }
+        }
+
+        function processAttendance(qrData) {
+            stopScanner();
+            const overlay = document.getElementById('scanSuccessOverlay');
+            const statusMsg = document.getElementById('statusMsg');
+            
+            // Tampilkan loading di status
+            document.getElementById('result').innerText = "MENGIRIM DATA...";
+
+            // Kirim data ke Google Sheets
+            fetch(`${SCRIPT_URL}?action=absen&nim=${currentAtlet.nim}&nama=${currentAtlet.nama}&sesi=${qrData}`)
+                .then(response => response.json())
+                .then(result => {
+                    if (result.status === "success") {
+                        overlay.classList.remove('hidden');
+                        setTimeout(() => {
+                            overlay.classList.add('hidden');
+                            showTab('performa');
+                        }, 3000);
+                    } else {
+                        alert("Gagal mencatat absen: " + result.message);
+                        startScanner();
+                    }
+                })
+                .catch(err => {
+                    alert("Koneksi gagal atau URL Script salah.");
+                    startScanner();
+                });
+        }
+
+        function logout() {
+            if (confirm("Keluar dari Portal Atlet?")) {
+                sessionStorage.clear();
+                window.location.href = 'login.html';
+            }
+        }
+    </script>
+</body>
+</html>
